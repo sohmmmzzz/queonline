@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Q-Serve | Book Appointment</title>
   <meta charset="UTF-8">
+  <title>Q-Serve | Book Appointment</title>
+
   <style>
     body {
       margin: 0;
@@ -18,43 +19,106 @@
     }
     .box {
       max-width: 500px;
-      margin: 30px auto;
+      margin: 40px auto;
       background: rgba(255,255,255,0.15);
       padding: 30px;
       border-radius: 15px;
     }
+    label {
+      font-size: 14px;
+    }
     input, select {
       width: 100%;
-      padding: 10px;
-      margin: 12px 0;
+      padding: 12px;
+      margin: 10px 0 20px 0;
       border-radius: 8px;
       border: none;
+      font-size: 15px;
     }
     button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: #ffd740;
       border: none;
       border-radius: 8px;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
     }
   </style>
 </head>
+
 <body>
+
 <header>Book Appointment</header>
+
 <div class="box">
-  <select>
-    <option>Select Service</option>
+  <label>Service Required</label>
+  <select id="service">
+    <option value="">Select Service</option>
     <option>Bonafide Certificate</option>
     <option>ID Card Issue</option>
     <option>Fee Related Issue</option>
     <option>Transcript</option>
     <option>General Inquiry</option>
   </select>
-  <input type="date">
-  <input type="time">
-  <button>Submit Request</button>
+
+  <label>Date</label>
+  <input id="date" type="date">
+
+  <label>Time</label>
+  <input id="time" type="time">
+
+  <button onclick="bookAppointment()">Submit Request</button>
 </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+    authDomain: "que-management-cbbde.firebaseapp.com",
+    projectId: "que-management-cbbde",
+    storageBucket: "que-management-cbbde.firebasestorage.app",
+    messagingSenderId: "141715475978",
+    appId: "1:141715475978:web:477119aedeb17924b4d9f3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.bookAppointment = async function () {
+    const service = document.getElementById("service").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+
+    if (!service || !date || !time) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert("User not logged in");
+      return;
+    }
+
+    await addDoc(collection(db, "appointments"), {
+      email: user.email,
+      service: service,
+      date: date,
+      time: time,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    alert("Appointment booked successfully!");
+  };
+</script>
+
 </body>
 </html>
