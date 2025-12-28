@@ -1,34 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Q-Serve | Student Dashboard</title>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", Arial, sans-serif;
       background: linear-gradient(135deg, #43cea2, #185a9d);
       color: white;
+      min-height: 100vh;
     }
 
     h1 {
       text-align: center;
       padding: 20px;
+      margin: 0;
     }
 
     .card {
-      width: 400px;
-      margin: auto;
-      background: rgba(255,255,255,0.15);
+      max-width: 450px;
+      margin: 30px auto;
+      background: rgba(255,255,255,0.18);
       padding: 25px;
       border-radius: 15px;
+    }
+
+    label {
+      font-size: 14px;
     }
 
     select, input, button {
       width: 100%;
       padding: 12px;
-      margin-top: 15px;
+      margin-top: 10px;
+      margin-bottom: 20px;
       border-radius: 8px;
       border: none;
       font-size: 15px;
@@ -40,27 +47,33 @@
       cursor: pointer;
     }
 
+    h2 {
+      text-align: center;
+      margin-top: 40px;
+    }
+
     table {
       width: 90%;
-      margin: 30px auto;
-      background: rgba(0,0,0,0.3);
+      margin: 20px auto 40px auto;
       border-collapse: collapse;
-      border-radius: 10px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 12px;
       overflow: hidden;
     }
 
     th, td {
       padding: 12px;
       text-align: center;
+      font-size: 14px;
     }
 
     th {
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.45);
     }
 
-    .pending { color: #ffeb3b; }
-    .approved { color: #4caf50; }
-    .rejected { color: #f44336; }
+    .pending { color: #ffeb3b; font-weight: bold; }
+    .approved { color: #4caf50; font-weight: bold; }
+    .rejected { color: #f44336; font-weight: bold; }
   </style>
 </head>
 
@@ -69,6 +82,7 @@
 <h1>Student Appointment Dashboard</h1>
 
 <div class="card">
+  <label>Service Required</label>
   <select id="service">
     <option value="">Select Service</option>
     <option>Bonafide Certificate</option>
@@ -78,13 +92,16 @@
     <option>General Inquiry</option>
   </select>
 
-  <input type="date" id="date">
-  <input type="time" id="time">
+  <label>Date</label>
+  <input type="date" id="date" />
 
-  <button onclick="book()">Submit Request</button>
+  <label>Time</label>
+  <input type="time" id="time" />
+
+  <button onclick="bookAppointment()">Submit Request</button>
 </div>
 
-<h2 style="text-align:center;">Your Recent Appointments</h2>
+<h2>Your Recent Appointments</h2>
 
 <table>
   <thead>
@@ -95,14 +112,15 @@
       <th>Status</th>
     </tr>
   </thead>
-  <tbody id="tableBody">
-    <tr><td colspan="4">Loading...</td></tr>
+  <tbody id="appointmentsTable">
+    <tr>
+      <td colspan="4">Loading...</td>
+    </tr>
   </tbody>
 </table>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import {
     getFirestore,
     collection,
@@ -113,6 +131,7 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  // 🔥 FIREBASE CONFIG (YOUR PROJECT)
   const firebaseConfig = {
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
     authDomain: "que-management-cbbde.firebaseapp.com",
@@ -122,52 +141,37 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const tableBody = document.getElementById("tableBody");
+  const table = document.getElementById("appointmentsTable");
 
-  let userEmail = null;
+  // 🔑 GET STUDENT EMAIL FROM LOCAL STORAGE
+  const studentEmail = localStorage.getItem("studentEmail");
 
-  // 🔐 WAIT FOR AUTH FIRST (THIS FIXES EVERYTHING)
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      alert("Please login again");
-      window.location.href = "index.html";
+  if (!studentEmail) {
+    alert("Please login again");
+    window.location.href = "index.html";
+  }
+
+  // 📥 LOAD STUDENT APPOINTMENTS
+  async function loadAppointments() {
+    table.innerHTML = "";
+
+    const q = query(
+      collection(db, "appointments"),
+      where("email", "==", studentEmail)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      table.innerHTML = "<tr><td colspan='4'>No appointments found</td></tr>";
       return;
     }
 
-    userEmail = user.email;
-    await loadAppointments();
-  });
-
-  async function loadAppointments() {
-  tableBody.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "appointments"));
-
-  if (snap.empty) {
-    tableBody.innerHTML = "<tr><td colspan='4'>No appointments found</td></tr>";
-    return;
-  }
-
-  snap.forEach(doc => {
-    const a = doc.data();
-    tableBody.innerHTML += `
-      <tr>
-        <td>${a.service}</td>
-        <td>${a.date}</td>
-        <td>${a.time}</td>
-        <td class="${a.status}">${a.status}</td>
-      </tr>
-    `;
-  });
-}
-
-
     snap.forEach(doc => {
       const a = doc.data();
-      tableBody.innerHTML += `
+      table.innerHTML += `
         <tr>
           <td>${a.service}</td>
           <td>${a.date}</td>
@@ -178,18 +182,19 @@
     });
   }
 
-  window.book = async function () {
+  // ➕ BOOK APPOINTMENT
+  window.bookAppointment = async function () {
     const service = document.getElementById("service").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
     if (!service || !date || !time) {
-      alert("Fill all fields");
+      alert("Please fill all fields");
       return;
     }
 
     await addDoc(collection(db, "appointments"), {
-      email: userEmail,
+      email: studentEmail,
       service,
       date,
       time,
@@ -197,9 +202,12 @@
       createdAt: serverTimestamp()
     });
 
-    alert("Appointment booked");
+    alert("Appointment booked successfully!");
     loadAppointments();
   };
+
+  // 🔥 INITIAL LOAD
+  loadAppointments();
 </script>
 
 </body>
