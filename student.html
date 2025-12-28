@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Q-Serve | Student Dashboard</title>
 
   <style>
     body {
       margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #43cea2, #185a9d);
       color: white;
       min-height: 100vh;
@@ -22,20 +22,15 @@
     .card {
       max-width: 450px;
       margin: 30px auto;
-      background: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.2);
       padding: 25px;
       border-radius: 15px;
-    }
-
-    label {
-      font-size: 14px;
     }
 
     select, input, button {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      margin-top: 15px;
       border-radius: 8px;
       border: none;
       font-size: 15px;
@@ -54,21 +49,20 @@
 
     table {
       width: 90%;
-      margin: 20px auto 40px auto;
+      margin: 20px auto;
+      background: rgba(0,0,0,0.3);
       border-collapse: collapse;
-      background: rgba(0,0,0,0.35);
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
     }
 
     th, td {
       padding: 12px;
       text-align: center;
-      font-size: 14px;
     }
 
     th {
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.4);
     }
 
     .pending { color: #ffeb3b; font-weight: bold; }
@@ -82,7 +76,6 @@
 <h1>Student Appointment Dashboard</h1>
 
 <div class="card">
-  <label>Service Required</label>
   <select id="service">
     <option value="">Select Service</option>
     <option>Bonafide Certificate</option>
@@ -92,11 +85,8 @@
     <option>General Inquiry</option>
   </select>
 
-  <label>Date</label>
-  <input type="date" id="date" />
-
-  <label>Time</label>
-  <input type="time" id="time" />
+  <input type="date" id="date">
+  <input type="time" id="time">
 
   <button onclick="bookAppointment()">Submit Request</button>
 </div>
@@ -113,9 +103,7 @@
     </tr>
   </thead>
   <tbody id="appointmentsTable">
-    <tr>
-      <td colspan="4">Loading...</td>
-    </tr>
+    <tr><td colspan="4">Loading...</td></tr>
   </tbody>
 </table>
 
@@ -131,7 +119,6 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // 🔥 FIREBASE CONFIG (YOUR PROJECT)
   const firebaseConfig = {
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
     authDomain: "que-management-cbbde.firebaseapp.com",
@@ -145,15 +132,9 @@
 
   const table = document.getElementById("appointmentsTable");
 
-  // 🔑 GET STUDENT EMAIL FROM LOCAL STORAGE
-  const studentEmail = localStorage.getItem("studentEmail");
+  // 🔥 FIXED STUDENT EMAIL (FOR DEMO)
+  const studentEmail = "student@test.com";
 
-  if (!studentEmail) {
-    alert("Please login again");
-    window.location.href = "index.html";
-  }
-
-  // 📥 LOAD STUDENT APPOINTMENTS
   async function loadAppointments() {
     table.innerHTML = "";
 
@@ -182,14 +163,13 @@
     });
   }
 
-  // ➕ BOOK APPOINTMENT
   window.bookAppointment = async function () {
     const service = document.getElementById("service").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
     if (!service || !date || !time) {
-      alert("Please fill all fields");
+      alert("Fill all fields");
       return;
     }
 
@@ -202,11 +182,10 @@
       createdAt: serverTimestamp()
     });
 
-    alert("Appointment booked successfully!");
+    alert("Appointment booked successfully");
     loadAppointments();
   };
 
-  // 🔥 INITIAL LOAD
   loadAppointments();
 </script>
 
