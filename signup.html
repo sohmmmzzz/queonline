@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Q-Serve | Create Account</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    .card {
+      background: rgba(255,255,255,0.2);
+      padding: 30px;
+      border-radius: 15px;
+      width: 320px;
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+    }
+    button {
+      background: #00e676;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+<div class="card">
+  <h2>Create Account</h2>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="signup()">Create Account</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+    authDomain: "que-management-cbbde.firebaseapp.com",
+    projectId: "que-management-cbbde",
+    appId: "1:141715475978:web:477119aedeb17924b4d9f3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.signup = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        alert("Account created successfully");
+        window.location.href = "index.html";
+      })
+      .catch(err => alert(err.message));
+  };
+</script>
+</body>
+</html>
