@@ -73,7 +73,7 @@
       return;
     }
 
-    signInWithEmailAndPassword(auth, email, password)
+    signInWithEmailAndPassword(auth, email, password) 
       .then(() => {
         // 🔐 Mark admin as logged in
         localStorage.setItem("isAdmin", "true");
