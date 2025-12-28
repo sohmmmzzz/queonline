@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Q-Serve | Book Appointment</title>
+  <title>Q-Serve | Student Dashboard</title>
 
   <style>
     body {
@@ -75,15 +75,15 @@
       background: rgba(0,0,0,0.4);
     }
 
-    .pending { color: #ffeb3b; }
-    .approved { color: #4caf50; }
-    .rejected { color: #f44336; }
+    .pending { color: #ffeb3b; font-weight: bold; }
+    .approved { color: #4caf50; font-weight: bold; }
+    .rejected { color: #f44336; font-weight: bold; }
   </style>
 </head>
 
 <body>
 
-<header>Book Appointment</header>
+<header>Student Appointment Dashboard</header>
 
 <div class="box">
   <label>Service Required</label>
@@ -117,15 +117,22 @@
     </tr>
   </thead>
   <tbody id="appointmentsTable">
-    <tr><td colspan="4">Loading...</td></tr>
+    <tr><td colspan="4">No appointments yet</td></tr>
   </tbody>
 </table>
 
+<!-- 🔥 FIREBASE LOGIC -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { 
-    getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp 
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -141,59 +148,40 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  let currentUserEmail = null;
-
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      currentUserEmail = user.email;
-      loadAppointments();
-    }
-  });
-
-  window.bookAppointment = async function () {
-    const service = serviceEl.value;
-    const date = dateEl.value;
-    const time = timeEl.value;
-
-    if (!service || !date || !time) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    await addDoc(collection(db, "appointments"), {
-      email: currentUserEmail,
-      service,
-      date,
-      time,
-      status: "pending",
-      createdAt: serverTimestamp()
-    });
-
-    alert("Appointment booked successfully!");
-    loadAppointments();
-  };
-
   const serviceEl = document.getElementById("service");
   const dateEl = document.getElementById("date");
   const timeEl = document.getElementById("time");
   const table = document.getElementById("appointmentsTable");
 
+  let userEmail = null;
+
+  // 🔐 Ensure user is logged in
+  onAuthStateChanged(auth, async user => {
+    if (!user) {
+      alert("Session expired. Please login again.");
+      window.location.href = "index.html";
+      return;
+    }
+
+    userEmail = user.email;
+    loadAppointments();
+  });
+
+  // 📥 Load only THIS student's appointments
   async function loadAppointments() {
-    table.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+    table.innerHTML = "";
 
     const q = query(
       collection(db, "appointments"),
-      where("email", "==", currentUserEmail)
+      where("email", "==", userEmail)
     );
 
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      table.innerHTML = "<tr><td colspan='4'>No appointments yet</td></tr>";
+      table.innerHTML = "<tr><td colspan='4'>No appointments found</td></tr>";
       return;
     }
-
-    table.innerHTML = "";
 
     snap.forEach(doc => {
       const a = doc.data();
@@ -207,6 +195,30 @@
       `;
     });
   }
+
+  // ➕ Book new appointment
+  window.bookAppointment = async function () {
+    const service = serviceEl.value;
+    const date = dateEl.value;
+    const time = timeEl.value;
+
+    if (!service || !date || !time) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    await addDoc(collection(db, "appointments"), {
+      email: userEmail,
+      service,
+      date,
+      time,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    alert("Appointment booked successfully!");
+    loadAppointments();
+  };
 </script>
 
 </body>
