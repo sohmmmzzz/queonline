@@ -1,112 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Q-Serve | Student Login</title>
 
   <style>
     body {
-      margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: Arial;
       background: linear-gradient(135deg, #667eea, #764ba2);
-      min-height: 100vh;
-      color: white;
-    }
-
-    header {
-      padding: 25px;
-      text-align: center;
-      font-size: 32px;
-      font-weight: bold;
-    }
-
-    .tagline {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-top: 5px;
-    }
-
-    .container {
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 70vh;
+      color: white;
     }
-
     .card {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255,255,255,0.2);
       padding: 30px;
       border-radius: 15px;
-      width: 340px;
+      width: 320px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
-
-    input {
-      width: 90%;
+    input, button {
+      width: 100%;
       padding: 12px;
-      margin: 12px 0;
+      margin-top: 15px;
       border-radius: 8px;
       border: none;
-      font-size: 15px;
     }
-
     button {
-      padding: 12px 30px;
-      border-radius: 8px;
-      border: none;
       background: #00e676;
-      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 15px;
     }
-
-    button:hover {
-      background: #00c853;
-    }
-
-    a {
-      color: #ffd740;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 12px;
-      opacity: 0.8;
-      padding-bottom: 15px;
-    }
+    a { color: #ffd740; text-decoration: none; }
   </style>
 </head>
 
 <body>
-
-<header>
-  Q-Serve
-  <div class="tagline">Smart Queue & Appointment Management System</div>
-</header>
-
-<div class="container">
-  <div class="card">
-    <h2>Student Login</h2>
-
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-
-    <button onclick="login()">Login</button>
-
-    <p><a href="Forgot_Password.html">Forgot Password?</a></p>
-    <p><a href="admin.html">Admin Login</a></p>
-  </div>
+<div class="card">
+  <h2>Student Login</h2>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p><a href="signup.html">Create new account</a></p>
+  <p><a href="admin.html">Admin Login</a></p>
 </div>
 
-<footer>
-  © 2025 Q-Serve | Academic Project
-</footer>
-
-<!-- 🔥 FIREBASE LOGIN SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -115,35 +54,23 @@
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
     authDomain: "que-management-cbbde.firebaseapp.com",
     projectId: "que-management-cbbde",
-    messagingSenderId: "141715475978",
     appId: "1:141715475978:web:477119aedeb17924b4d9f3"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // 🔐 STUDENT LOGIN FUNCTION
   window.login = function () {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!email || !password) {
-      alert("Please enter email and password");
-      return;
-    }
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
-        // ✅ SAVE STUDENT EMAIL FOR DASHBOARD SESSION
         localStorage.setItem("studentEmail", email);
-
         window.location.href = "student.html";
       })
-      .catch(error => {
-        alert(error.message);
-      });
+      .catch(err => alert(err.message));
   };
 </script>
-
 </body>
 </html>
