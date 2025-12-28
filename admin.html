@@ -1,48 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Q-Serve | Admin Login</title>
   <meta charset="UTF-8">
+  <title>Q-Serve | Admin Login</title>
+
   <style>
     body {
       margin: 0;
-      font-family: "Segoe UI", Arial;
-      background: linear-gradient(135deg, #ff512f, #dd2476);
-      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #654ea3, #eaafc8);
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       color: white;
     }
-    .login {
-      background: rgba(0,0,0,0.25);
+
+    .card {
+      background: rgba(255,255,255,0.2);
       padding: 30px;
       border-radius: 15px;
       width: 320px;
       text-align: center;
     }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
       border-radius: 8px;
       border: none;
+      font-size: 15px;
     }
+
     button {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      background: #00e5ff;
+      background: #ffd740;
+      font-weight: bold;
       cursor: pointer;
     }
   </style>
 </head>
+
 <body>
-<div class="login">
-  <h2>Administrator Login</h2>
-  <input placeholder="Admin Email">
-  <input type="password" placeholder="Password">
-  <button>Login</button>
+
+<div class="card">
+  <h2>Admin Login</h2>
+
+  <input type="email" id="email" placeholder="Admin Email">
+  <input type="password" id="password" placeholder="Password">
+
+  <button onclick="adminLogin()">Login</button>
 </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+    authDomain: "que-management-cbbde.firebaseapp.com",
+    projectId: "que-management-cbbde",
+    messagingSenderId: "141715475978",
+    appId: "1:141715475978:web:477119aedeb17924b4d9f3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.adminLogin = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+      alert("Enter email and password");
+      return;
+    }
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        window.location.href = "admin-dashboard.html";
+      })
+      .catch(err => {
+        alert(err.message);
+      });
+  };
+</script>
+
 </body>
 </html>
