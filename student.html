@@ -7,60 +7,44 @@
   <style>
     body {
       margin: 0;
-      font-family: "Segoe UI", Arial;
+      font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #43cea2, #185a9d);
       color: white;
     }
 
-    header {
-      padding: 20px;
+    h1 {
       text-align: center;
-      font-size: 26px;
-      font-weight: bold;
+      padding: 20px;
     }
 
-    .box {
-      max-width: 500px;
-      margin: 30px auto;
+    .card {
+      width: 400px;
+      margin: auto;
       background: rgba(255,255,255,0.15);
-      padding: 30px;
+      padding: 25px;
       border-radius: 15px;
     }
 
-    label {
-      font-size: 14px;
-    }
-
-    input, select {
+    select, input, button {
       width: 100%;
       padding: 12px;
-      margin: 10px 0 20px 0;
+      margin-top: 15px;
       border-radius: 8px;
       border: none;
       font-size: 15px;
     }
 
     button {
-      width: 100%;
-      padding: 14px;
       background: #ffd740;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
     }
 
-    h3 {
-      text-align: center;
-      margin-top: 40px;
-    }
-
     table {
       width: 90%;
-      margin: 20px auto;
-      border-collapse: collapse;
+      margin: 30px auto;
       background: rgba(0,0,0,0.3);
+      border-collapse: collapse;
       border-radius: 10px;
       overflow: hidden;
     }
@@ -68,25 +52,23 @@
     th, td {
       padding: 12px;
       text-align: center;
-      font-size: 14px;
     }
 
     th {
       background: rgba(0,0,0,0.4);
     }
 
-    .pending { color: #ffeb3b; font-weight: bold; }
-    .approved { color: #4caf50; font-weight: bold; }
-    .rejected { color: #f44336; font-weight: bold; }
+    .pending { color: #ffeb3b; }
+    .approved { color: #4caf50; }
+    .rejected { color: #f44336; }
   </style>
 </head>
 
 <body>
 
-<header>Student Appointment Dashboard</header>
+<h1>Student Appointment Dashboard</h1>
 
-<div class="box">
-  <label>Service Required</label>
+<div class="card">
   <select id="service">
     <option value="">Select Service</option>
     <option>Bonafide Certificate</option>
@@ -96,16 +78,13 @@
     <option>General Inquiry</option>
   </select>
 
-  <label>Date</label>
-  <input id="date" type="date">
+  <input type="date" id="date">
+  <input type="time" id="time">
 
-  <label>Time</label>
-  <input id="time" type="time">
-
-  <button onclick="bookAppointment()">Submit Request</button>
+  <button onclick="book()">Submit Request</button>
 </div>
 
-<h3>Your Recent Appointments</h3>
+<h2 style="text-align:center;">Your Recent Appointments</h2>
 
 <table>
   <thead>
@@ -116,12 +95,11 @@
       <th>Status</th>
     </tr>
   </thead>
-  <tbody id="appointmentsTable">
-    <tr><td colspan="4">No appointments yet</td></tr>
+  <tbody id="tableBody">
+    <tr><td colspan="4">Loading...</td></tr>
   </tbody>
 </table>
 
-<!-- 🔥 FIREBASE LOGIC -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -139,7 +117,6 @@
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
     authDomain: "que-management-cbbde.firebaseapp.com",
     projectId: "que-management-cbbde",
-    storageBucket: "que-management-cbbde.firebasestorage.app",
     messagingSenderId: "141715475978",
     appId: "1:141715475978:web:477119aedeb17924b4d9f3"
   };
@@ -148,28 +125,24 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const serviceEl = document.getElementById("service");
-  const dateEl = document.getElementById("date");
-  const timeEl = document.getElementById("time");
-  const table = document.getElementById("appointmentsTable");
+  const tableBody = document.getElementById("tableBody");
 
   let userEmail = null;
 
-  // 🔐 Ensure user is logged in
-  onAuthStateChanged(auth, async user => {
+  // 🔐 WAIT FOR AUTH FIRST (THIS FIXES EVERYTHING)
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      alert("Session expired. Please login again.");
+      alert("Please login again");
       window.location.href = "index.html";
       return;
     }
 
     userEmail = user.email;
-    loadAppointments();
+    await loadAppointments();
   });
 
-  // 📥 Load only THIS student's appointments
   async function loadAppointments() {
-    table.innerHTML = "";
+    tableBody.innerHTML = "";
 
     const q = query(
       collection(db, "appointments"),
@@ -179,13 +152,13 @@
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      table.innerHTML = "<tr><td colspan='4'>No appointments found</td></tr>";
+      tableBody.innerHTML = "<tr><td colspan='4'>No appointments yet</td></tr>";
       return;
     }
 
     snap.forEach(doc => {
       const a = doc.data();
-      table.innerHTML += `
+      tableBody.innerHTML += `
         <tr>
           <td>${a.service}</td>
           <td>${a.date}</td>
@@ -196,14 +169,13 @@
     });
   }
 
-  // ➕ Book new appointment
-  window.bookAppointment = async function () {
-    const service = serviceEl.value;
-    const date = dateEl.value;
-    const time = timeEl.value;
+  window.book = async function () {
+    const service = document.getElementById("service").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
 
     if (!service || !date || !time) {
-      alert("Please fill all fields");
+      alert("Fill all fields");
       return;
     }
 
@@ -216,7 +188,7 @@
       createdAt: serverTimestamp()
     });
 
-    alert("Appointment booked successfully!");
+    alert("Appointment booked");
     loadAppointments();
   };
 </script>
