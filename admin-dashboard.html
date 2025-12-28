@@ -8,23 +8,47 @@
       font-family: Arial;
       background: linear-gradient(135deg, #6a11cb, #fbc2eb);
       color: white;
+      padding: 20px;
     }
-    h1 { text-align: center; padding: 20px; }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
     table {
       width: 95%;
       margin: auto;
       background: rgba(0,0,0,0.3);
       border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
     }
-    th, td { padding: 12px; text-align: center; }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background: rgba(0,0,0,0.4);
+    }
+
     button {
       padding: 6px 10px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
+      font-weight: bold;
     }
-    .approve { background: green; color: white; }
-    .reject { background: red; color: white; }
+
+    .approve { background: #4caf50; color: white; }
+    .reject { background: #f44336; color: white; }
+    .logout { background: #ff9800; margin-bottom: 20px; }
+
+    .pending { color: yellow; }
+    .approved { color: lightgreen; }
+    .rejected { color: red; }
   </style>
 </head>
 
@@ -32,10 +56,14 @@
 
 <h1>Admin Dashboard</h1>
 
+<div style="text-align:center;">
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
 <table>
   <tr>
     <th>Token</th>
-    <th>Email</th>
+    <th>Student Email</th>
     <th>Service</th>
     <th>Date</th>
     <th>Time</th>
@@ -50,8 +78,18 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
-    getFirestore, collection, getDocs, updateDoc, doc
+    getFirestore,
+    collection,
+    getDocs,
+    updateDoc,
+    doc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // 🔒 PROTECT DASHBOARD
+  if (localStorage.getItem("isAdmin") !== "true") {
+    alert("Unauthorized access");
+    window.location.href = "admin.html";
+  }
 
   const firebaseConfig = {
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
@@ -64,9 +102,15 @@
   const db = getFirestore(app);
   const table = document.getElementById("table");
 
-  async function load() {
+  async function loadAppointments() {
     table.innerHTML = "";
+
     const snap = await getDocs(collection(db, "appointments"));
+
+    if (snap.empty) {
+      table.innerHTML = "<tr><td colspan='7'>No requests found</td></tr>";
+      return;
+    }
 
     snap.forEach(d => {
       const a = d.data();
@@ -77,26 +121,38 @@
           <td>${a.service}</td>
           <td>${a.date}</td>
           <td>${a.time}</td>
-          <td>${a.status}</td>
+          <td class="${a.status}">${a.status}</td>
           <td>
-            <button class="approve" onclick="approve('${d.id}')">Approve</button>
-            <button class="reject" onclick="reject('${d.id}')">Reject</button>
+            ${
+              a.status === "pending"
+                ? `
+                  <button class="approve" onclick="approve('${d.id}')">Approve</button>
+                  <button class="reject" onclick="reject('${d.id}')">Reject</button>
+                `
+                : "-"
+            }
           </td>
-        </tr>`;
+        </tr>
+      `;
     });
   }
 
-  window.approve = async id => {
+  window.approve = async (id) => {
     await updateDoc(doc(db, "appointments", id), { status: "approved" });
-    load();
+    loadAppointments();
   };
 
-  window.reject = async id => {
+  window.reject = async (id) => {
     await updateDoc(doc(db, "appointments", id), { status: "rejected" });
-    load();
+    loadAppointments();
   };
 
-  load();
+  window.logout = function () {
+    localStorage.removeItem("isAdmin");
+    window.location.href = "admin.html";
+  };
+
+  loadAppointments();
 </script>
 
 </body>
