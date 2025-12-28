@@ -1,158 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Q-Serve | Admin Dashboard</title>
+  <title>Q-Serve | Admin Login</title>
 
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #6a11cb, #fbc2eb);
+      font-family: Arial;
+      background: linear-gradient(135deg, #654ea3, #eaafc8);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       color: white;
-      padding: 20px;
     }
 
-    h1 {
+    .card {
+      background: rgba(255,255,255,0.2);
+      padding: 30px;
+      border-radius: 15px;
+      width: 320px;
       text-align: center;
-      margin-bottom: 30px;
     }
 
-    table {
-      width: 95%;
-      margin: auto;
-      border-collapse: collapse;
-      background: rgba(0,0,0,0.3);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 14px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    th {
-      background: rgba(0,0,0,0.4);
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
     }
 
     button {
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
+      background: #ffd740;
       font-weight: bold;
+      cursor: pointer;
     }
-
-    .approve {
-      background: #4caf50;
-      color: white;
-    }
-
-    .reject {
-      background: #f44336;
-      color: white;
-    }
-
-    .pending { color: #ffeb3b; }
-    .approved { color: #4caf50; }
-    .rejected { color: #f44336; }
   </style>
 </head>
 
 <body>
 
-<h1>Admin Dashboard</h1>
+<div class="card">
+  <h2>Admin Login</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Student Email</th>
-      <th>Service</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Status</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody id="appointmentsTable">
-    <tr><td colspan="6">Loading...</td></tr>
-  </tbody>
-</table>
+  <input id="email" type="email" placeholder="Admin Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="loginAdmin()">Login</button>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    getDocs,
-    updateDoc,
-    doc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
     authDomain: "que-management-cbbde.firebaseapp.com",
     projectId: "que-management-cbbde",
-    messagingSenderId: "141715475978",
     appId: "1:141715475978:web:477119aedeb17924b4d9f3"
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const table = document.getElementById("appointmentsTable");
+  const auth = getAuth(app);
 
-  async function loadAppointments() {
-    table.innerHTML = "";
+  window.loginAdmin = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-    const snap = await getDocs(collection(db, "appointments"));
-
-    if (snap.empty) {
-      table.innerHTML = "<tr><td colspan='6'>No appointments found</td></tr>";
+    if (!email || !password) {
+      alert("Enter admin credentials");
       return;
     }
 
-    snap.forEach(d => {
-      const a = d.data();
-      table.innerHTML += `
-        <tr>
-          <td>${a.email}</td>
-          <td>${a.service}</td>
-          <td>${a.date}</td>
-          <td>${a.time}</td>
-          <td class="${a.status}">${a.status}</td>
-          <td>
-            ${
-              a.status === "pending"
-                ? `
-                  <button class="approve" onclick="approve('${d.id}')">Approve</button>
-                  <button class="reject" onclick="reject('${d.id}')">Reject</button>
-                `
-                : "-"
-            }
-          </td>
-        </tr>
-      `;
-    });
-  }
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        // 🔐 Mark admin as logged in
+        localStorage.setItem("isAdmin", "true");
 
-  window.approve = async (id) => {
-    await updateDoc(doc(db, "appointments", id), {
-      status: "approved"
-    });
-    loadAppointments();
+        window.location.href = "admin-dashboard.html";
+      })
+      .catch(err => alert(err.message));
   };
-
-  window.reject = async (id) => {
-    await updateDoc(doc(db, "appointments", id), {
-      status: "rejected"
-    });
-    loadAppointments();
-  };
-
-  // 🔥 LOAD IMMEDIATELY (THIS WAS THE BUG)
-  loadAppointments();
 </script>
 
 </body>
