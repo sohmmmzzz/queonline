@@ -1,73 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Q-Serve | Student Dashboard</title>
 
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: linear-gradient(135deg, #43cea2, #185a9d);
       color: white;
-      min-height: 100vh;
     }
-
-    h1 {
-      text-align: center;
-      padding: 20px;
-      margin: 0;
-    }
-
+    h1 { text-align: center; padding: 20px; }
     .card {
-      max-width: 450px;
-      margin: 30px auto;
+      width: 420px;
+      margin: auto;
       background: rgba(255,255,255,0.2);
       padding: 25px;
       border-radius: 15px;
     }
-
     select, input, button {
       width: 100%;
       padding: 12px;
       margin-top: 15px;
       border-radius: 8px;
       border: none;
-      font-size: 15px;
     }
-
     button {
       background: #ffd740;
       font-weight: bold;
       cursor: pointer;
     }
-
-    h2 {
-      text-align: center;
-      margin-top: 40px;
-    }
-
     table {
       width: 90%;
-      margin: 20px auto;
+      margin: 30px auto;
       background: rgba(0,0,0,0.3);
       border-collapse: collapse;
-      border-radius: 10px;
-      overflow: hidden;
     }
-
     th, td {
       padding: 12px;
       text-align: center;
     }
-
-    th {
-      background: rgba(0,0,0,0.4);
-    }
-
-    .pending { color: #ffeb3b; font-weight: bold; }
-    .approved { color: #4caf50; font-weight: bold; }
-    .rejected { color: #f44336; font-weight: bold; }
+    .pending { color: yellow; }
+    .approved { color: lightgreen; }
+    .rejected { color: red; }
   </style>
 </head>
 
@@ -82,111 +56,90 @@
     <option>ID Card Issue</option>
     <option>Fee Related Issue</option>
     <option>Transcript</option>
-    <option>General Inquiry</option>
   </select>
 
   <input type="date" id="date">
   <input type="time" id="time">
 
-  <button onclick="bookAppointment()">Submit Request</button>
+  <button onclick="book()">Submit Request</button>
 </div>
 
-<h2>Your Recent Appointments</h2>
-
 <table>
-  <thead>
-    <tr>
-      <th>Service</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody id="appointmentsTable">
-    <tr><td colspan="4">Loading...</td></tr>
+  <tr>
+    <th>Token</th>
+    <th>Service</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Status</th>
+  </tr>
+  <tbody id="table">
+    <tr><td colspan="5">Loading...</td></tr>
   </tbody>
 </table>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    serverTimestamp
+    getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
     authDomain: "que-management-cbbde.firebaseapp.com",
     projectId: "que-management-cbbde",
-    messagingSenderId: "141715475978",
     appId: "1:141715475978:web:477119aedeb17924b4d9f3"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const table = document.getElementById("appointmentsTable");
+  const studentEmail = localStorage.getItem("studentEmail") || "student@test.com";
+  const table = document.getElementById("table");
 
-  // 🔥 FIXED STUDENT EMAIL (FOR DEMO)
-  const studentEmail = "student@test.com";
-
-  async function loadAppointments() {
+  async function load() {
     table.innerHTML = "";
-
-    const q = query(
-      collection(db, "appointments"),
-      where("email", "==", studentEmail)
-    );
-
+    const q = query(collection(db, "appointments"), where("email", "==", studentEmail));
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      table.innerHTML = "<tr><td colspan='4'>No appointments found</td></tr>";
+      table.innerHTML = "<tr><td colspan='5'>No bookings</td></tr>";
       return;
     }
 
-    snap.forEach(doc => {
-      const a = doc.data();
+    snap.forEach(d => {
+      const a = d.data();
       table.innerHTML += `
         <tr>
+          <td>${a.token}</td>
           <td>${a.service}</td>
           <td>${a.date}</td>
           <td>${a.time}</td>
           <td class="${a.status}">${a.status}</td>
-        </tr>
-      `;
+        </tr>`;
     });
   }
 
-  window.bookAppointment = async function () {
+  window.book = async function () {
     const service = document.getElementById("service").value;
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
-    if (!service || !date || !time) {
-      alert("Fill all fields");
-      return;
-    }
+    const snap = await getDocs(collection(db, "appointments"));
+    const token = "Q-" + String(snap.size + 1).padStart(3, "0");
 
     await addDoc(collection(db, "appointments"), {
       email: studentEmail,
-      service,
-      date,
-      time,
+      service, date, time,
+      token,
       status: "pending",
       createdAt: serverTimestamp()
     });
 
-    alert("Appointment booked successfully");
-    loadAppointments();
+    alert("Booked! Token: " + token);
+    load();
   };
 
-  loadAppointments();
+  load();
 </script>
 
 </body>
