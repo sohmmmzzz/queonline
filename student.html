@@ -142,19 +142,28 @@
   });
 
   async function loadAppointments() {
-    tableBody.innerHTML = "";
+  tableBody.innerHTML = "";
 
-    const q = query(
-      collection(db, "appointments"),
-      where("email", "==", userEmail)
-    );
+  const snap = await getDocs(collection(db, "appointments"));
 
-    const snap = await getDocs(q);
+  if (snap.empty) {
+    tableBody.innerHTML = "<tr><td colspan='4'>No appointments found</td></tr>";
+    return;
+  }
 
-    if (snap.empty) {
-      tableBody.innerHTML = "<tr><td colspan='4'>No appointments yet</td></tr>";
-      return;
-    }
+  snap.forEach(doc => {
+    const a = doc.data();
+    tableBody.innerHTML += `
+      <tr>
+        <td>${a.service}</td>
+        <td>${a.date}</td>
+        <td>${a.time}</td>
+        <td class="${a.status}">${a.status}</td>
+      </tr>
+    `;
+  });
+}
+
 
     snap.forEach(doc => {
       const a = doc.data();
