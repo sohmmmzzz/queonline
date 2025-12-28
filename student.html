@@ -11,22 +11,26 @@
       background: linear-gradient(135deg, #43cea2, #185a9d);
       color: white;
     }
+
     header {
       padding: 20px;
       text-align: center;
       font-size: 26px;
       font-weight: bold;
     }
+
     .box {
       max-width: 500px;
-      margin: 40px auto;
+      margin: 30px auto;
       background: rgba(255,255,255,0.15);
       padding: 30px;
       border-radius: 15px;
     }
+
     label {
       font-size: 14px;
     }
+
     input, select {
       width: 100%;
       padding: 12px;
@@ -35,6 +39,7 @@
       border: none;
       font-size: 15px;
     }
+
     button {
       width: 100%;
       padding: 14px;
@@ -45,6 +50,34 @@
       font-weight: bold;
       cursor: pointer;
     }
+
+    h3 {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(0,0,0,0.4);
+    }
+
+    .pending { color: #ffeb3b; }
+    .approved { color: #4caf50; }
+    .rejected { color: #f44336; }
   </style>
 </head>
 
@@ -72,11 +105,28 @@
   <button onclick="bookAppointment()">Submit Request</button>
 </div>
 
+<h3>Your Recent Appointments</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="appointmentsTable">
+    <tr><td colspan="4">Loading...</td></tr>
+  </tbody>
+</table>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { 
+    getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
@@ -91,33 +141,72 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  window.bookAppointment = async function () {
-  alert("Button clicked");
-};
+  let currentUserEmail = null;
 
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUserEmail = user.email;
+      loadAppointments();
+    }
+  });
+
+  window.bookAppointment = async function () {
+    const service = serviceEl.value;
+    const date = dateEl.value;
+    const time = timeEl.value;
 
     if (!service || !date || !time) {
       alert("Please fill all fields");
       return;
     }
 
-    const user = auth.currentUser;
-    if (!user) {
-      alert("User not logged in");
-      return;
-    }
-
     await addDoc(collection(db, "appointments"), {
-      email: user.email,
-      service: service,
-      date: date,
-      time: time,
+      email: currentUserEmail,
+      service,
+      date,
+      time,
       status: "pending",
       createdAt: serverTimestamp()
     });
 
     alert("Appointment booked successfully!");
+    loadAppointments();
   };
+
+  const serviceEl = document.getElementById("service");
+  const dateEl = document.getElementById("date");
+  const timeEl = document.getElementById("time");
+  const table = document.getElementById("appointmentsTable");
+
+  async function loadAppointments() {
+    table.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+
+    const q = query(
+      collection(db, "appointments"),
+      where("email", "==", currentUserEmail)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      table.innerHTML = "<tr><td colspan='4'>No appointments yet</td></tr>";
+      return;
+    }
+
+    table.innerHTML = "";
+
+    snap.forEach(doc => {
+      const a = doc.data();
+      table.innerHTML += `
+        <tr>
+          <td>${a.service}</td>
+          <td>${a.date}</td>
+          <td>${a.time}</td>
+          <td class="${a.status}">${a.status}</td>
+        </tr>
+      `;
+    });
+  }
 </script>
 
 </body>
