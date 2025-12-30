@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Q-Serve | Admin Dashboard</title>
+<title>Q-Serve | Admin Login</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg: linear-gradient(135deg,#f5f7fa,#e4ebf5);
   --glass: rgba(255,255,255,0.75);
   --text: #1e1e1e;
-  --approve: #2e7d32;
-  --reject: #d32f2f;
+  --bg: linear-gradient(135deg,#f5f7fa,#e4ebf5);
+  --accent: #00c853;
 }
 
 *{
@@ -22,10 +21,13 @@
 
 body{
   margin:0;
-  min-height:100vh;
+  height:100vh;
   background:var(--bg);
   background-size:200% 200%;
   animation:bgMove 10s ease infinite;
+  display:flex;
+  justify-content:center;
+  align-items:center;
   color:var(--text);
 }
 
@@ -35,195 +37,131 @@ body{
   100%{background-position:0% 50%}
 }
 
-/* ===== HEADER ===== */
-.header{
-  padding:22px 40px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+/* ===== LOGIN CARD ===== */
+.card{
+  width:360px;
+  background:var(--glass);
+  backdrop-filter:blur(14px);
+  padding:35px;
+  border-radius:22px;
+  box-shadow:0 25px 50px rgba(0,0,0,0.12);
+  text-align:center;
 }
 
-.header h1{
-  margin:0;
+.card h2{
+  margin-top:0;
+  margin-bottom:25px;
   font-weight:600;
 }
 
-.logout{
-  padding:10px 18px;
-  border-radius:10px;
-  background:#ffffff;
-  cursor:pointer;
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
-  transition:transform .2s, box-shadow .2s;
-}
-
-.logout:hover{
-  transform:translateY(-2px);
-  box-shadow:0 12px 25px rgba(0,0,0,0.12);
-}
-
-/* ===== TABLE CARD ===== */
-.table-card{
-  width:95%;
-  margin:20px auto 40px;
-  background:var(--glass);
-  backdrop-filter:blur(14px);
-  padding:30px;
-  border-radius:22px;
-  box-shadow:0 25px 50px rgba(0,0,0,0.12);
-}
-
-table{
+/* ===== INPUTS ===== */
+input{
   width:100%;
-  border-collapse:collapse;
-}
-
-thead{
-  background:#f0f3f8;
-}
-
-th,td{
   padding:14px;
-  text-align:center;
+  margin-top:16px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  outline:none;
+  background:#fff;
   font-size:14px;
 }
 
-tbody tr{
-  border-bottom:1px solid #e0e6ef;
-}
-
-.pending{color:#fbc02d;font-weight:600}
-.approved{color:#2e7d32;font-weight:600}
-.rejected{color:#d32f2f;font-weight:600}
-
-/* ===== ACTION BUTTONS ===== */
+/* ===== BUTTON ===== */
 button{
-  padding:8px 14px;
+  width:100%;
+  padding:14px;
+  margin-top:22px;
+  border-radius:12px;
   border:none;
-  border-radius:8px;
+  background:linear-gradient(135deg,#00c853,#69f0ae);
   font-weight:600;
   cursor:pointer;
-  transition:transform .2s, box-shadow .2s;
+  color:#fff;
+  transition:transform .25s, box-shadow .25s;
 }
 
 button:hover{
-  transform:translateY(-2px);
-  box-shadow:0 8px 18px rgba(0,0,0,0.15);
+  transform:translateY(-3px);
+  box-shadow:0 18px 30px rgba(0,200,83,0.35);
 }
 
-.approve{
-  background:#e8f5e9;
-  color:var(--approve);
+button:active{
+  transform:translateY(-1px);
 }
 
-.reject{
-  background:#fdecea;
-  color:var(--reject);
+/* ===== FOOTER NAV ===== */
+.footer-nav{
+  margin-top:25px;
+  display:flex;
+  justify-content:center;
+  gap:16px;
 }
 
-/* ===== FOOTER ===== */
-.footer{
-  text-align:center;
+.footer-nav a{
+  text-decoration:none;
   font-size:13px;
-  color:#555;
-  margin-bottom:20px;
+  color:#333;
+  background:#ffffff;
+  padding:8px 14px;
+  border-radius:8px;
+  box-shadow:0 6px 14px rgba(0,0,0,0.08);
+  transition:transform .2s, box-shadow .2s;
+}
+
+.footer-nav a:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(0,0,0,0.12);
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <h1>Admin Dashboard</h1>
-  <div class="logout" onclick="logout()">Logout</div>
-</div>
+<div class="card">
+  <h2>Admin Login</h2>
 
-<!-- TABLE -->
-<div class="table-card">
-  <table>
-    <thead>
-      <tr>
-        <th>Token</th>
-        <th>Email</th>
-        <th>Service</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="table">
-      <tr><td colspan="7">Loading...</td></tr>
-    </tbody>
-  </table>
-</div>
+  <input id="email" type="email" placeholder="Admin Email">
+  <input id="password" type="password" placeholder="Password">
 
-<div class="footer">
-  © 2025 Q-Serve • Admin Control Panel
+  <button onclick="loginAdmin()">Login</button>
+
+  <div class="footer-nav">
+    <a href="index.html">← Student Login</a>
+    <a href="signup.html">Create Student Account</a>
+  </div>
 </div>
 
 <!-- 🔒 BACKEND (UNCHANGED) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore,collection,getDocs,updateDoc,doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-if(localStorage.getItem("isAdmin")!=="true"){
-  alert("Unauthorized");
-  window.location.href="admin.html";
-}
-
-const firebaseConfig={
-  apiKey:"AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
-  authDomain:"que-management-cbbde.firebaseapp.com",
-  projectId:"que-management-cbbde",
-  appId:"1:141715475978:web:477119aedeb17924b4d9f3"
+const firebaseConfig = {
+  apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+  authDomain: "que-management-cbbde.firebaseapp.com",
+  projectId: "que-management-cbbde",
+  appId: "1:141715475978:web:477119aedeb17924b4d9f3"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const table=document.getElementById("table");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-async function load(){
-  table.innerHTML="";
-  const snap=await getDocs(collection(db,"appointments"));
+window.loginAdmin = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-  snap.forEach(d=>{
-    const a=d.data();
-    table.innerHTML+=`
-    <tr>
-      <td>${a.token}</td>
-      <td>${a.email}</td>
-      <td>${a.service}</td>
-      <td>${a.date}</td>
-      <td>${a.time}</td>
-      <td class="${a.status}">${a.status}</td>
-      <td>
-        ${a.status==="pending" ?
-        `<button class="approve" onclick="approve('${d.id}')">Approve</button>
-         <button class="reject" onclick="reject('${d.id}')">Reject</button>` 
-        : "-"}
-      </td>
-    </tr>`;
-  });
-}
+  if (!email || !password) {
+    alert("Enter admin credentials");
+    return;
+  }
 
-window.approve=async(id)=>{
-  await updateDoc(doc(db,"appointments",id),{status:"approved"});
-  load();
-}
-
-window.reject=async(id)=>{
-  await updateDoc(doc(db,"appointments",id),{status:"rejected"});
-  load();
-}
-
-window.logout=()=>{
-  localStorage.removeItem("isAdmin");
-  window.location.href="admin.html";
-}
-
-load();
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      localStorage.setItem("isAdmin", "true");
+      window.location.href = "admin-dashboard.html";
+    })
+    .catch(err => alert(err.message));
+};
 </script>
 
 </body>
