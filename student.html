@@ -8,10 +8,10 @@
 
 <style>
 :root{
-  --glass: rgba(255,255,255,0.18);
-  --text: #ffffff;
-  --bg: linear-gradient(135deg,#667eea,#764ba2,#43cea2);
-  --accent: #00e676;
+  --glass: rgba(255,255,255,0.7);
+  --text: #1e1e1e;
+  --bg: linear-gradient(135deg,#f5f7fa,#e4ebf5);
+  --accent: #00c853;
 }
 
 *{
@@ -23,8 +23,8 @@ body{
   margin:0;
   min-height:100vh;
   background:var(--bg);
-  background-size:300% 300%;
-  animation:bgMove 8s ease infinite;
+  background-size:200% 200%;
+  animation:bgMove 10s ease infinite;
   color:var(--text);
 }
 
@@ -36,7 +36,7 @@ body{
 
 /* ===== HEADER ===== */
 .header{
-  padding:20px 40px;
+  padding:22px 40px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -48,10 +48,11 @@ body{
 }
 
 .logout{
-  background:rgba(255,255,255,0.25);
+  background:#ffffff;
   padding:10px 18px;
   border-radius:10px;
   cursor:pointer;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
 }
 
 /* ===== MAIN LAYOUT ===== */
@@ -59,33 +60,43 @@ body{
   display:flex;
   justify-content:center;
   gap:40px;
-  padding:30px 40px 60px;
+  padding:20px 40px 60px;
 }
 
-/* ===== BOOKING CARD ===== */
-.card{
-  width:420px;
+/* ===== CARDS ===== */
+.card, .table-card{
   background:var(--glass);
-  backdrop-filter:blur(16px);
+  backdrop-filter:blur(14px);
   padding:30px;
   border-radius:22px;
-  box-shadow:0 30px 60px rgba(0,0,0,0.35);
+  box-shadow:0 25px 50px rgba(0,0,0,0.12);
 }
 
-.card h2{
+.card{
+  width:420px;
+}
+
+.table-card{
+  width:620px;
+}
+
+.card h2,
+.table-card h2{
   margin-top:0;
+  margin-bottom:20px;
   font-weight:600;
 }
 
+/* ===== INPUTS ===== */
 select,input{
   width:100%;
   padding:14px;
   margin-top:16px;
   border-radius:10px;
-  border:none;
+  border:1px solid #ddd;
   outline:none;
-  background:rgba(255,255,255,0.25);
-  color:#fff;
+  background:#fff;
+  color:#333;
 }
 
 select option{
@@ -99,16 +110,16 @@ button{
   margin-top:22px;
   border-radius:12px;
   border:none;
-  background:linear-gradient(135deg,#00e676,#1de9b6);
+  background:linear-gradient(135deg,#00c853,#69f0ae);
   font-weight:600;
   cursor:pointer;
-  color:#000;
+  color:#fff;
   transition:transform .25s, box-shadow .25s;
 }
 
 button:hover{
   transform:translateY(-3px);
-  box-shadow:0 18px 35px rgba(0,230,118,0.45);
+  box-shadow:0 18px 30px rgba(0,200,83,0.35);
 }
 
 button:active{
@@ -116,23 +127,13 @@ button:active{
 }
 
 /* ===== TABLE ===== */
-.table-card{
-  width:620px;
-  background:var(--glass);
-  backdrop-filter:blur(16px);
-  padding:30px;
-  border-radius:22px;
-  box-shadow:0 30px 60px rgba(0,0,0,0.35);
-}
-
-.table-card h2{
-  margin-top:0;
-  margin-bottom:20px;
-}
-
 table{
   width:100%;
   border-collapse:collapse;
+}
+
+thead{
+  background:#f0f3f8;
 }
 
 th,td{
@@ -141,28 +142,24 @@ th,td{
   font-size:14px;
 }
 
-thead{
-  background:rgba(0,0,0,0.25);
-}
-
 tbody tr{
-  border-bottom:1px solid rgba(255,255,255,0.15);
+  border-bottom:1px solid #e0e6ef;
 }
 
 .token{
   font-weight:600;
-  color:#ffd740;
+  color:#ff9800;
 }
 
-.pending{color:#ffeb3b}
-.approved{color:#4caf50}
-.rejected{color:#f44336}
+.pending{color:#fbc02d}
+.approved{color:#2e7d32}
+.rejected{color:#d32f2f}
 
 /* ===== FOOTER ===== */
 .footer{
   text-align:center;
   font-size:13px;
-  opacity:0.85;
+  color:#555;
   margin-bottom:20px;
 }
 </style>
@@ -198,7 +195,7 @@ tbody tr{
     <button onclick="book()">Submit Request</button>
   </div>
 
-  <!-- APPOINTMENT TABLE -->
+  <!-- APPOINTMENTS TABLE -->
   <div class="table-card">
     <h2>My Appointments</h2>
 
