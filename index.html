@@ -8,15 +8,15 @@
 
 <style>
 :root {
-  --glass: rgba(255,255,255,0.18);
-  --text: #ffffff;
-  --bg: linear-gradient(135deg,#667eea,#764ba2,#43cea2);
+  --glass: rgba(255,255,255,0.75);
+  --text: #1e1e1e;
+  --bg: linear-gradient(135deg,#f5f7fa,#e4ebf5);
 }
 
 body.dark {
-  --glass: rgba(25,25,25,0.6);
+  --glass: rgba(30,30,30,0.75);
   --text: #f5f5f5;
-  --bg: linear-gradient(135deg,#141e30,#243b55);
+  --bg: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 }
 
 * {
@@ -28,8 +28,8 @@ body {
   margin: 0;
   height: 100vh;
   background: var(--bg);
-  background-size: 300% 300%;
-  animation: bgMove 8s ease infinite;
+  background-size: 200% 200%;
+  animation: bgMove 10s ease infinite;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -54,7 +54,7 @@ body {
   padding: 10px 14px;
   cursor: pointer;
   font-size: 14px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
 /* Login Card */
@@ -64,7 +64,7 @@ body {
   border-radius: 22px;
   background: var(--glass);
   backdrop-filter: blur(16px);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
 }
 
 .logo {
@@ -74,7 +74,7 @@ body {
 
 .tagline {
   font-size: 13px;
-  opacity: 0.8;
+  opacity: 0.75;
   margin-bottom: 30px;
 }
 
@@ -83,41 +83,46 @@ body {
   padding: 14px;
   margin-bottom: 18px;
   border-radius: 10px;
-  border: none;
+  border: 1px solid #ddd;
   outline: none;
-  background: rgba(255,255,255,0.25);
-  color: var(--text);
+  background: #fff;
+  color: #333;
+}
+
+body.dark .input {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
 }
 
 .input::placeholder {
-  color: rgba(255,255,255,0.7);
+  color: #777;
 }
 
-/* 🔥 BUTTON WITH HOVER EFFECT */
+body.dark .input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+/* Button (unchanged behaviour) */
 button {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg,#00e676,#1de9b6);
+  background: linear-gradient(135deg,#00c853,#69f0ae);
   font-weight: 600;
   cursor: pointer;
-  color: #000;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease;
+  color: #fff;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
 
 button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 35px rgba(0, 230, 118, 0.45);
-  background: linear-gradient(135deg,#1de9b6,#00e676);
+  box-shadow: 0 18px 30px rgba(0,200,83,0.35);
 }
 
 button:active {
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
 }
 
 .links {
@@ -128,8 +133,12 @@ button:active {
 }
 
 .links a {
-  color: #ffd740;
+  color: #00796b;
   text-decoration: none;
+}
+
+body.dark .links a {
+  color: #80cbc4;
 }
 
 /* Loader */
@@ -141,7 +150,7 @@ button:active {
 .loader span {
   width: 10px;
   height: 10px;
-  background: #fff;
+  background: currentColor;
   border-radius: 50%;
   display: inline-block;
   animation: bounce 1.2s infinite;
@@ -153,22 +162,22 @@ button:active {
   40%{transform:scale(1)}
 }
 
-/* Footer Quick Links */
+/* Footer */
 .footer {
   margin-top: 35px;
   font-size: 13px;
-  opacity: 0.85;
+  opacity: 0.8;
   text-align: center;
 }
 
 .footer a {
-  color: #ffd740;
+  color: #00796b;
   margin: 0 12px;
   text-decoration: none;
 }
 
-.footer a:hover {
-  text-decoration: underline;
+body.dark .footer a {
+  color: #80cbc4;
 }
 
 /* Toast */
@@ -176,12 +185,13 @@ button:active {
   position: fixed;
   bottom: 25px;
   right: 30px;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
   padding: 14px 20px;
   border-radius: 10px;
   opacity: 0;
   transform: translateY(20px);
   transition: 0.4s;
+  color: #fff;
 }
 .toast.show {
   opacity: 1;
@@ -221,7 +231,7 @@ button:active {
 
 <div class="toast" id="toast"></div>
 
-<!-- BACKEND UNCHANGED -->
+<!-- 🔒 BACKEND (UNCHANGED) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
