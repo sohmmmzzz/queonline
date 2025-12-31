@@ -31,7 +31,6 @@ body {
   background-size: 200% 200%;
   animation: bgMove 10s ease infinite;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   color: var(--text);
@@ -43,7 +42,6 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Theme Toggle */
 .theme-toggle {
   position: fixed;
   top: 20px;
@@ -53,11 +51,8 @@ body {
   border-radius: 12px;
   padding: 10px 14px;
   cursor: pointer;
-  font-size: 14px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
-/* Signup Card */
 .card {
   width: 380px;
   padding: 35px;
@@ -86,7 +81,6 @@ body {
   border: 1px solid #ddd;
   outline: none;
   background: #fff;
-  color: #333;
 }
 
 body.dark .input {
@@ -95,15 +89,6 @@ body.dark .input {
   color: #fff;
 }
 
-.input::placeholder {
-  color: #777;
-}
-
-body.dark .input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-/* Button (same as index) */
 button {
   width: 100%;
   padding: 14px;
@@ -113,16 +98,6 @@ button {
   font-weight: 600;
   cursor: pointer;
   color: #fff;
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-
-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 30px rgba(0,200,83,0.35);
-}
-
-button:active {
-  transform: translateY(-1px);
 }
 
 .links {
@@ -131,32 +106,9 @@ button:active {
   justify-content: space-between;
   font-size: 13px;
 }
-
 .links a {
   color: #00796b;
   text-decoration: none;
-}
-
-body.dark .links a {
-  color: #80cbc4;
-}
-
-/* Footer */
-.footer {
-  margin-top: 35px;
-  font-size: 13px;
-  opacity: 0.8;
-  text-align: center;
-}
-
-.footer a {
-  color: #00796b;
-  margin: 0 12px;
-  text-decoration: none;
-}
-
-body.dark .footer a {
-  color: #80cbc4;
 }
 </style>
 </head>
@@ -169,11 +121,11 @@ body.dark .footer a {
   <div class="logo">Q-Serve</div>
   <div class="tagline">Create Student Account</div>
 
-  <input class="input" type="email" placeholder="Student Email">
-  <input class="input" type="password" placeholder="Password">
-  <input class="input" type="password" placeholder="Confirm Password">
+  <input id="email" class="input" type="email" placeholder="Student Email">
+  <input id="password" class="input" type="password" placeholder="Password">
+  <input id="confirm" class="input" type="password" placeholder="Confirm Password">
 
-  <button>Create Account</button>
+  <button onclick="signup()">Create Account</button>
 
   <div class="links">
     <a href="index.html">Back to Login</a>
@@ -181,11 +133,43 @@ body.dark .footer a {
   </div>
 </div>
 
-<div class="footer">
-  <a href="index.html">Student Login</a> |
-  <a href="signup.html">Signup</a> |
-  <a href="admin.html">Admin Panel</a>
-</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+  authDomain: "que-management-cbbde.firebaseapp.com",
+  projectId: "que-management-cbbde",
+  appId: "1:141715475978:web:477119aedeb17924b4d9f3"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.signup = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const confirm = document.getElementById("confirm").value;
+
+  if (!email || !password || !confirm) {
+    alert("Fill all fields");
+    return;
+  }
+
+  if (password !== confirm) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      alert("Account created successfully");
+      window.location.href = "index.html";
+    })
+    .catch(err => alert(err.message));
+};
+</script>
 
 <script>
 function toggleTheme() {
