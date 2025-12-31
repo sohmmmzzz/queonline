@@ -57,9 +57,9 @@ body {
   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
-/* Card */
+/* Login Card */
 .card {
-  width: 400px;
+  width: 380px;
   padding: 35px;
   border-radius: 22px;
   background: var(--glass);
@@ -75,32 +75,9 @@ body {
 .tagline {
   font-size: 13px;
   opacity: 0.75;
-  margin-bottom: 18px;
+  margin-bottom: 30px;
 }
 
-/* NOW SERVING */
-.now-serving {
-  text-align: center;
-  padding: 14px;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.05);
-  margin-bottom: 25px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-body.dark .now-serving {
-  background: rgba(255,255,255,0.1);
-}
-
-.now-serving span {
-  font-size: 26px;
-  font-weight: 600;
-  display: block;
-  margin-top: 6px;
-}
-
-/* Inputs */
 .input {
   width: 100%;
   padding: 14px;
@@ -109,6 +86,7 @@ body.dark .now-serving {
   border: 1px solid #ddd;
   outline: none;
   background: #fff;
+  color: #333;
 }
 
 body.dark .input {
@@ -117,7 +95,15 @@ body.dark .input {
   color: #fff;
 }
 
-/* Button */
+.input::placeholder {
+  color: #777;
+}
+
+body.dark .input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+/* Button (unchanged behaviour) */
 button {
   width: 100%;
   padding: 14px;
@@ -127,13 +113,18 @@ button {
   font-weight: 600;
   cursor: pointer;
   color: #fff;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
 
 button:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 30px rgba(0,200,83,0.35);
 }
 
-/* Links */
+button:active {
+  transform: translateY(-1px);
+}
+
 .links {
   margin-top: 22px;
   display: flex;
@@ -142,8 +133,12 @@ button:hover {
 }
 
 .links a {
-  text-decoration: none;
   color: #00796b;
+  text-decoration: none;
+}
+
+body.dark .links a {
+  color: #80cbc4;
 }
 
 /* Loader */
@@ -151,6 +146,38 @@ button:hover {
   display: none;
   text-align: center;
   margin-top: 15px;
+}
+.loader span {
+  width: 10px;
+  height: 10px;
+  background: currentColor;
+  border-radius: 50%;
+  display: inline-block;
+  animation: bounce 1.2s infinite;
+}
+.loader span:nth-child(2){animation-delay:.2s}
+.loader span:nth-child(3){animation-delay:.4s}
+@keyframes bounce {
+  0%,80%,100%{transform:scale(0)}
+  40%{transform:scale(1)}
+}
+
+/* Footer */
+.footer {
+  margin-top: 35px;
+  font-size: 13px;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.footer a {
+  color: #00796b;
+  margin: 0 12px;
+  text-decoration: none;
+}
+
+body.dark .footer a {
+  color: #80cbc4;
 }
 
 /* Toast */
@@ -181,18 +208,14 @@ button:hover {
   <div class="logo">Q-Serve</div>
   <div class="tagline">Smart Queue & Appointment System</div>
 
-  <!-- NOW SERVING -->
-  <div class="now-serving">
-    Now Serving
-    <span id="nowServing">--</span>
-  </div>
-
   <input id="email" class="input" type="email" placeholder="Student Email">
   <input id="password" class="input" type="password" placeholder="Password">
 
   <button onclick="login()">Login</button>
 
-  <div class="loader" id="loader">Loading...</div>
+  <div class="loader" id="loader">
+    <span></span><span></span><span></span>
+  </div>
 
   <div class="links">
     <a href="signup.html">Create Account</a>
@@ -200,9 +223,15 @@ button:hover {
   </div>
 </div>
 
+<div class="footer">
+  <a href="index.html">Student Login</a> |
+  <a href="signup.html">Signup</a> |
+  <a href="admin.html">Admin Panel</a>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<!-- Firebase -->
+<!-- 🔒 BACKEND (UNCHANGED) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -224,7 +253,7 @@ window.login = function () {
     .then(() => {
       localStorage.setItem("studentEmail", email.value);
       showToast("Login Successful ✔");
-      setTimeout(()=>location.href="student.html",1000);
+      setTimeout(()=>location.href="student.html",1200);
     })
     .catch(err => {
       loader.style.display = "none";
@@ -243,21 +272,6 @@ function showToast(msg) {
   toast.classList.add("show");
   setTimeout(()=>toast.classList.remove("show"),3000);
 }
-
-/* 🔥 FETCH NOW SERVING TOKEN */
-async function loadNowServing() {
-  try {
-    const res = await fetch("/api/now-serving");
-    const data = await res.json();
-    document.getElementById("nowServing").innerText =
-      data.nowServing ?? "--";
-  } catch {
-    document.getElementById("nowServing").innerText = "--";
-  }
-}
-
-setInterval(loadNowServing, 3000);
-loadNowServing();
 </script>
 
 </body>
