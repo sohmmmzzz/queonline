@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Q-Serve | Admin Panel</title>
+<title>Q-Serve | Admin Dashboard</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -16,7 +16,7 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: auto;
   padding: 40px 20px;
 }
@@ -26,10 +26,33 @@ h1 {
   margin-bottom: 30px;
 }
 
-/* NOW SERVING CARD */
-.now-card {
-  background: rgba(255,255,255,0.1);
+/* CARDS */
+.cards {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: rgba(255,255,255,0.12);
   border-radius: 18px;
+  padding: 25px;
+  width: 220px;
+  text-align: center;
+}
+
+.card span {
+  display: block;
+  font-size: 38px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+/* NOW SERVING */
+.now-card {
+  background: rgba(0,0,0,0.25);
+  border-radius: 20px;
   padding: 30px;
   text-align: center;
   margin-bottom: 40px;
@@ -42,38 +65,86 @@ h1 {
 
 .now-card span {
   display: block;
-  font-size: 54px;
+  font-size: 60px;
   font-weight: 600;
   margin: 15px 0;
 }
 
 .now-card button {
-  padding: 14px 30px;
+  padding: 14px 26px;
   border-radius: 12px;
   border: none;
-  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
+  margin: 8px;
+}
+
+.next {
   background: linear-gradient(135deg,#00e676,#1de9b6);
   color: #000;
 }
 
-.now-card button:hover {
-  transform: translateY(-2px);
+.end {
+  background: #ff5252;
+  color: #fff;
 }
 
-/* LOGOUT */
+.reset {
+  background: #2196f3;
+  color: #fff;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255,255,255,0.1);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 14px;
+  text-align: center;
+}
+
+th {
+  background: rgba(0,0,0,0.3);
+}
+
+tr:not(:last-child) {
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+button.action {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.approve {
+  background: #4caf50;
+  color: #fff;
+}
+
+.reject {
+  background: #e74c3c;
+  color: #fff;
+}
+
 .logout {
-  margin-top: 50px;
+  margin-top: 40px;
   text-align: center;
 }
 
 .logout button {
-  background: #ff5252;
+  background: #ff5b5b;
   color: #fff;
   border: none;
-  padding: 12px 22px;
-  border-radius: 10px;
+  padding: 12px 26px;
+  border-radius: 12px;
   cursor: pointer;
 }
 </style>
@@ -82,14 +153,38 @@ h1 {
 <body>
 
 <div class="container">
-  <h1>Admin Control Panel</h1>
+  <h1>Admin Dashboard</h1>
+
+  <!-- COUNTERS -->
+  <div class="cards">
+    <div class="card">Pending<span id="pending">0</span></div>
+    <div class="card">Approved<span id="approved">0</span></div>
+    <div class="card">Rejected<span id="rejected">0</span></div>
+  </div>
 
   <!-- NOW SERVING -->
   <div class="now-card">
     <h2>Now Serving Token</h2>
     <span id="nowServing">--</span>
-    <button onclick="nextToken()">Next Token ▶</button>
+    <button class="next" onclick="nextToken()">Next Token ▶</button>
+    <br>
+    <button class="end" onclick="endService()">End Service ❌</button>
+    <button class="reset" onclick="resetService()">Reset for Next Day 🔄</button>
   </div>
+
+  <!-- REQUEST TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>Student Email</th>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
 
   <div class="logout">
     <button onclick="location.href='admin.html'">Logout</button>
@@ -97,19 +192,76 @@ h1 {
 </div>
 
 <script>
-async function loadNowServing() {
-  const res = await fetch("/api/now-serving");
+// LOAD REQUESTS
+async function loadRequests() {
+  const res = await fetch("/api/admin/tokens");
   const data = await res.json();
-  document.getElementById("nowServing").innerText =
-    data.nowServing ?? "--";
+
+  let p=0,a=0,r=0;
+  tableBody.innerHTML="";
+
+  data.forEach(req=>{
+    if(req.status==="pending") p++;
+    if(req.status==="approved") a++;
+    if(req.status==="rejected") r++;
+
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${req.email ?? "-"}</td>
+      <td>${req.service ?? "General"}</td>
+      <td>${new Date(req.time).toLocaleDateString()}</td>
+      <td>${req.status}</td>
+      <td>
+        <button class="action approve" onclick="approve('${req.token}')">Approve</button>
+        <button class="action reject" onclick="reject('${req.token}')">Reject</button>
+      </td>`;
+    tableBody.appendChild(tr);
+  });
+
+  pending.innerText=p;
+  approved.innerText=a;
+  rejected.innerText=r;
 }
 
-async function nextToken() {
-  await fetch("/api/now-serving/next", { method: "POST" });
+// APPROVE / REJECT
+async function approve(token){
+  await fetch("/api/admin/approve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
+  loadRequests();
+}
+
+async function reject(token){
+  await fetch("/api/admin/reject",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token})});
+  loadRequests();
+}
+
+// NOW SERVING
+async function loadNowServing(){
+  const res=await fetch("/api/now-serving");
+  const data=await res.json();
+  nowServing.innerText=data.status==="closed"?"CLOSED":data.nowServing;
+}
+
+async function nextToken(){
+  await fetch("/api/now-serving/next",{method:"POST"});
   loadNowServing();
 }
 
-setInterval(loadNowServing, 3000);
+async function endService(){
+  await fetch("/api/service/end",{method:"POST"});
+  loadNowServing();
+}
+
+async function resetService(){
+  await fetch("/api/service/reset",{method:"POST"});
+  loadNowServing();
+}
+
+setInterval(()=>{
+  loadRequests();
+  loadNowServing();
+},4000);
+
+loadRequests();
 loadNowServing();
 </script>
 
