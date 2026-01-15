@@ -141,6 +141,19 @@ button:hover{
 
 <!-- TABLE -->
 <div class="table-card">
+  <div style="display:flex;gap:15px;margin-bottom:20px;">
+  <input id="searchInput" placeholder="Search email or token"
+         style="flex:1;padding:10px;border-radius:8px;border:none;">
+
+  <select id="statusFilter"
+          style="padding:10px;border-radius:8px;border:none;">
+    <option value="all">All</option>
+    <option value="pending">Pending</option>
+    <option value="approved">Approved</option>
+    <option value="rejected">Rejected</option>
+  </select>
+</div>
+
   <table>
     <thead>
       <tr>
