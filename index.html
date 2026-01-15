@@ -272,7 +272,66 @@ function showToast(msg) {
   toast.classList.add("show");
   setTimeout(()=>toast.classList.remove("show"),3000);
 }
+
+  // AUTO CALL NEXT TOKEN
+app.post("/api/admin/call-next", async (req, res) => {
+  try {
+    const counterRef = db.collection("counters").doc("main");
+    const appointmentsRef = db.collection("appointments");
+
+    await db.runTransaction(async (t) => {
+      // 1️⃣ Get current in-service appointment
+      const currentSnap = await t.get(
+        appointmentsRef.where("status", "==", "in_service").limit(1)
+      );
+
+      if (!currentSnap.empty) {
+        const currentDoc = currentSnap.docs[0];
+        t.update(currentDoc.ref, { status: "completed" });
+      }
+
+      // 2️⃣ Get next approved appointment (lowest token)
+      const nextSnap = await t.get(
+        appointmentsRef
+          .where("status", "==", "approved")
+          .orderBy("token")
+          .limit(1)
+      );
+
+      if (nextSnap.empty) {
+        // No more tokens
+        t.set(counterRef, { nowServing: null, isActive: false }, { merge: true });
+        return;
+      }
+
+      const nextDoc = nextSnap.docs[0];
+      const nextData = nextDoc.data();
+
+      // 3️⃣ Mark next as in_service
+      t.update(nextDoc.ref, { status: "in_service" });
+
+      // 4️⃣ Update nowServing
+      t.set(
+        counterRef,
+        {
+          nowServing: nextData.token,
+          isActive: true,
+          email: nextData.email,
+          service: nextData.service,
+        },
+        { merge: true }
+      );
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to call next token" });
+  }
+});
+
 </script>
 
+  
 </body>
 </html>
