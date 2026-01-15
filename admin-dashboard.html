@@ -149,6 +149,30 @@ button:hover{
   color:#555;
   margin-bottom:20px;
 }
+
+async function loadNowServing() {
+  const res = await fetch("/api/now-serving");
+  const data = await res.json();
+
+  document.getElementById("nowServing").innerText =
+    data.status === "closed" ? "CLOSED" : data.nowServing;
+}
+
+async function nextToken() {
+  await fetch("/api/now-serving/next", { method: "POST" });
+  loadNowServing();
+}
+
+async function endService() {
+  await fetch("/api/service/end", { method: "POST" });
+  loadNowServing();
+}
+
+async function resetService() {
+  await fetch("/api/service/reset", { method: "POST" });
+  loadNowServing();
+}
+  
 </style>
 </head>
 
@@ -312,3 +336,5 @@ load();
 
 </body>
 </html>
+
+
