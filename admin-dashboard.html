@@ -15,7 +15,10 @@
   --reject: #d32f2f;
 }
 
-*{ box-sizing:border-box; font-family:'Poppins',sans-serif; }
+*{
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
 
 body{
   margin:0;
@@ -32,6 +35,7 @@ body{
   100%{background-position:0% 50%}
 }
 
+/* ===== HEADER ===== */
 .header{
   padding:22px 40px;
   display:flex;
@@ -39,13 +43,27 @@ body{
   align-items:center;
 }
 
+.header h1{
+  margin:0;
+  font-weight:600;
+}
+
 .logout{
   padding:10px 18px;
   border-radius:10px;
   background:#ffffff;
   cursor:pointer;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+  transition:transform .2s, box-shadow .2s;
 }
 
+.logout:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 25px rgba(0,0,0,0.12);
+}
+
+  
+/* ===== TABLE CARD ===== */
 .table-card{
   width:95%;
   margin:20px auto 40px;
@@ -53,24 +71,88 @@ body{
   backdrop-filter:blur(14px);
   padding:30px;
   border-radius:22px;
+  box-shadow:0 25px 50px rgba(0,0,0,0.12);
 }
 
-table{ width:100%; border-collapse:collapse; }
-th,td{ padding:14px; text-align:center; }
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+thead{
+  background:#f0f3f8;
+}
+
+th,td{
+  padding:14px;
+  text-align:center;
+  font-size:14px;
+}
+
+tbody tr{
+  border-bottom:1px solid #e0e6ef;
+}
+
 .pending{color:#fbc02d;font-weight:600}
 .approved{color:#2e7d32;font-weight:600}
 .rejected{color:#d32f2f;font-weight:600}
 
+/* ===== ACTION BUTTONS ===== */
 button{
   padding:8px 14px;
   border:none;
   border-radius:8px;
   font-weight:600;
   cursor:pointer;
+  transition:transform .2s, box-shadow .2s;
 }
 
-.approve{ background:#e8f5e9; color:var(--approve); }
-.reject{ background:#fdecea; color:var(--reject); }
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(0,0,0,0.15);
+}
+
+.approve{
+  background:#e8f5e9;
+  color:var(--approve);
+}
+
+.reject{
+  background:#fdecea;
+  color:var(--reject);
+}
+
+/* ===== FOOTER ===== */
+.footer{
+  text-align:center;
+  font-size:13px;
+  color:#555;
+  margin-bottom:20px;
+}
+
+async function loadNowServing() {
+  const res = await fetch("/api/now-serving");
+  const data = await res.json();
+
+  document.getElementById("nowServing").innerText =
+    data.status === "closed" ? "CLOSED" : data.nowServing;
+}
+
+async function nextToken() {
+  await fetch("/api/now-serving/next", { method: "POST" });
+  loadNowServing();
+}
+
+async function endService() {
+  await fetch("/api/service/end", { method: "POST" });
+  loadNowServing();
+}
+
+async function resetService() {
+  await fetch("/api/service/reset", { method: "POST" });
+  loadNowServing();
+}
+  
 </style>
 </head>
 
@@ -82,27 +164,17 @@ button{
   <div class="logout" onclick="logout()">Logout</div>
 </div>
 
-<!-- NOW SERVING (ADMIN ONLY) -->
-<div class="table-card" style="text-align:center;">
-  <h2>Now Serving</h2>
-
-  <div id="nowServingToken" style="font-size:52px;font-weight:600;">--</div>
-  <div id="nowServingInfo" style="opacity:.8;margin-bottom:15px;">
-    No active service
-  </div>
-
-  <button onclick="callNextToken()" style="background:#2e7d32;color:#fff;">
-    Call Next ▶
-  </button>
-</div>
-
 <!-- TABLE -->
 <div class="table-card">
 
+  <!-- SEARCH & FILTER -->
   <div style="display:flex;gap:15px;margin-bottom:20px;">
-    <input id="searchInput" placeholder="Search email or token"
+    <input id="searchInput"
+           placeholder="Search email or token"
            style="flex:1;padding:10px;border-radius:8px;border:none;">
-    <select id="statusFilter" style="padding:10px;border-radius:8px;border:none;">
+
+    <select id="statusFilter"
+            style="padding:10px;border-radius:8px;border:none;">
       <option value="all">All</option>
       <option value="pending">Pending</option>
       <option value="approved">Approved</option>
@@ -113,8 +185,13 @@ button{
   <table>
     <thead>
       <tr>
-        <th>Token</th><th>Email</th><th>Service</th>
-        <th>Date</th><th>Time</th><th>Status</th><th>Action</th>
+        <th>Token</th>
+        <th>Email</th>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody id="table">
@@ -123,34 +200,71 @@ button{
   </table>
 </div>
 
+<div class="footer">
+  © 2025 Q-Serve • Admin Control Panel
+</div>
+
+<!-- 🔒 FIREBASE + LOGIC -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore,collection,getDocs,updateDoc,doc } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-if(localStorage.getItem("isAdmin")!=="true"){
-  alert("Unauthorized");
-  location.href="admin.html";
+/* ADMIN AUTH CHECK */
+if (localStorage.getItem("isAdmin") !== "true") {
+  alert("Unauthorized access");
+  window.location.href = "admin.html";
 }
 
-const firebaseConfig={
-  apiKey:"AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
-  authDomain:"que-management-cbbde.firebaseapp.com",
-  projectId:"que-management-cbbde",
-  appId:"1:141715475978:web:477119aedeb17924b4d9f3"
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+  authDomain: "que-management-cbbde.firebaseapp.com",
+  projectId: "que-management-cbbde",
+  appId: "1:141715475978:web:477119aedeb17924b4d9f3"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const table=document.getElementById("table");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-async function load(){
-  table.innerHTML="";
-  const snap=await getDocs(collection(db,"appointments"));
+const table = document.getElementById("table");
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
 
-  snap.forEach(d=>{
-    const a=d.data();
-    table.innerHTML+=`
+/* LOAD + FILTER DATA */
+async function load() {
+  table.innerHTML = "";
+
+  const search = searchInput.value.toLowerCase();
+  const filter = statusFilter.value;
+
+  const snap = await getDocs(collection(db, "appointments"));
+  let found = false;
+
+  snap.forEach(d => {
+    const a = d.data();
+
+    if (filter !== "all" && a.status !== filter) return;
+
+const emailMatch = a.email?.toLowerCase().includes(search);
+
+const tokenValue =
+  a.token !== undefined && a.token !== null
+    ? String(a.token).toLowerCase()
+    : "";
+
+const tokenMatch = tokenValue.includes(search);
+
+    if (search && !(emailMatch || tokenMatch)) return;
+
+    found = true;
+
+    table.innerHTML += `
       <tr>
         <td>${a.token}</td>
         <td>${a.email}</td>
@@ -159,54 +273,75 @@ async function load(){
         <td>${a.time}</td>
         <td class="${a.status}">${a.status}</td>
         <td>
-          ${a.status==="pending"
-            ? `<button class="approve" onclick="approve('${d.id}')">Approve</button>
-               <button class="reject" onclick="reject('${d.id}')">Reject</button>`
-            : "-"}
+          ${
+            a.status === "pending"
+              ? `<button class="approve" onclick="approve('${d.id}')">Approve</button>
+                 <button class="reject" onclick="reject('${d.id}')">Reject</button>`
+              : "-"
+          }
         </td>
-      </tr>`;
+      </tr>
+    `;
   });
+
+  if (!found) {
+    table.innerHTML = `<tr><td colspan="7">No matching records</td></tr>`;
+  }
 }
 
-window.approve=async(id)=>{
-  await updateDoc(doc(db,"appointments",id),{status:"approved"});
+/* APPROVE / REJECT */
+window.approve = async (id) => {
+  await updateDoc(doc(db, "appointments", id), { status: "approved" });
   load();
-}
+};
 
-window.reject=async(id)=>{
-  await updateDoc(doc(db,"appointments",id),{status:"rejected"});
+window.reject = async (id) => {
+  await updateDoc(doc(db, "appointments", id), { status: "rejected" });
   load();
-}
+};
 
-window.logout=()=>{
+/* LOGOUT */
+window.logout = () => {
   localStorage.removeItem("isAdmin");
-  location.href="admin.html";
-}
+  window.location.href = "admin.html";
+};
 
-// NOW SERVING
-async function loadNowServing(){
-  const res=await fetch("https://YOUR-BACKEND-URL/api/now-serving");
-  const data=await res.json();
+/* LIVE FILTERING */
+searchInput.oninput = load;
+statusFilter.onchange = load;  
 
-  if(data.status==="closed" || !data.nowServing){
-    nowServingToken.innerText="--";
-    nowServingInfo.innerText="No active service";
+/* INITIAL LOAD */
+load();
+
+// ================= NOW SERVING LOGIC (ADDED) =================
+
+// Load current now serving
+async function loadNowServing() {
+  const res = await fetch("/api/now-serving");
+  const data = await res.json();
+
+  if (data.status === "closed" || !data.nowServing) {
+    document.getElementById("nowServingToken").innerText = "--";
+    document.getElementById("nowServingInfo").innerText = "No active service";
     return;
   }
 
-  nowServingToken.innerText=data.nowServing;
-  nowServingInfo.innerText=`${data.email} • ${data.service}`;
+  document.getElementById("nowServingToken").innerText = data.nowServing;
+  document.getElementById("nowServingInfo").innerText =
+    `${data.email} • ${data.service}`;
 }
 
-window.callNextToken=async()=>{
-  await fetch("https://YOUR-BACKEND-URL/api/admin/call-next",{method:"POST"});
+// Call next token (AUTO)
+window.callNextToken = async () => {
+  await fetch("/api/admin/call-next", { method: "POST" });
   load();
   loadNowServing();
-}
+};
 
-setInterval(loadNowServing,4000);
-load();
+// Auto refresh
+setInterval(loadNowServing, 4000);
 loadNowServing();
+  
 </script>
 
 </body>
