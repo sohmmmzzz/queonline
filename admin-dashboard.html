@@ -197,28 +197,53 @@ const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 const table=document.getElementById("table");
 
-async function load(){
-  table.innerHTML="";
-  const snap=await getDocs(collection(db,"appointments"));
+async function load() {
+  table.innerHTML = "";
 
-  snap.forEach(d=>{
-    const a=d.data();
-    table.innerHTML+=`
-    <tr>
-      <td>${a.token}</td>
-      <td>${a.email}</td>
-      <td>${a.service}</td>
-      <td>${a.date}</td>
-      <td>${a.time}</td>
-      <td class="${a.status}">${a.status}</td>
-      <td>
-        ${a.status==="pending" ?
-        `<button class="approve" onclick="approve('${d.id}')">Approve</button>
-         <button class="reject" onclick="reject('${d.id}')">Reject</button>` 
-        : "-"}
-      </td>
-    </tr>`;
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const filter = document.getElementById("statusFilter").value;
+
+  const snap = await getDocs(collection(db, "appointments"));
+
+  let found = false;
+
+  snap.forEach(d => {
+    const a = d.data();
+
+    // FILTER BY STATUS
+    if (filter !== "all" && a.status !== filter) return;
+
+    // SEARCH BY EMAIL OR TOKEN
+    const emailMatch = a.email?.toLowerCase().includes(search);
+    const tokenMatch = String(a.token).includes(search);
+
+    if (search && !(emailMatch || tokenMatch)) return;
+
+    found = true;
+
+    table.innerHTML += `
+      <tr>
+        <td>${a.token}</td>
+        <td>${a.email}</td>
+        <td>${a.service}</td>
+        <td>${a.date}</td>
+        <td>${a.time}</td>
+        <td class="${a.status}">${a.status}</td>
+        <td>
+          ${
+            a.status === "pending"
+              ? `<button class="approve" onclick="approve('${d.id}')">Approve</button>
+                 <button class="reject" onclick="reject('${d.id}')">Reject</button>`
+              : "-"
+          }
+        </td>
+      </tr>
+    `;
   });
+
+  if (!found) {
+    table.innerHTML = `<tr><td colspan="7">No matching records</td></tr>`;
+  }
 }
 
 window.approve=async(id)=>{
