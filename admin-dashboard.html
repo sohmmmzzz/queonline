@@ -347,10 +347,40 @@ window.logout = () => {
 
 /* LIVE FILTERING */
 searchInput.oninput = load;
-statusFilter.onchange = load;
+statusFilter.onchange = load;  
 
 /* INITIAL LOAD */
 load();
+
+// ================= NOW SERVING LOGIC (ADDED) =================
+
+// Load current now serving
+async function loadNowServing() {
+  const res = await fetch("/api/now-serving");
+  const data = await res.json();
+
+  if (data.status === "closed" || !data.nowServing) {
+    document.getElementById("nowServingToken").innerText = "--";
+    document.getElementById("nowServingInfo").innerText = "No active service";
+    return;
+  }
+
+  document.getElementById("nowServingToken").innerText = data.nowServing;
+  document.getElementById("nowServingInfo").innerText =
+    `${data.email} • ${data.service}`;
+}
+
+// Call next token (AUTO)
+window.callNextToken = async () => {
+  await fetch("/api/admin/call-next", { method: "POST" });
+  load();
+  loadNowServing();
+};
+
+// Auto refresh
+setInterval(loadNowServing, 4000);
+loadNowServing();
+  
 </script>
 
 </body>
