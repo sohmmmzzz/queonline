@@ -226,8 +226,15 @@ async function load() {
 
     if (filter !== "all" && a.status !== filter) return;
 
-    const emailMatch = a.email?.toLowerCase().includes(search);
-    const tokenMatch = String(a.token).includes(search);
+const emailMatch = a.email?.toLowerCase().includes(search);
+
+const tokenValue =
+  a.token !== undefined && a.token !== null
+    ? String(a.token).toLowerCase()
+    : "";
+
+const tokenMatch = tokenValue.includes(search);
+
     if (search && !(emailMatch || tokenMatch)) return;
 
     found = true;
