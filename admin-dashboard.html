@@ -62,6 +62,27 @@ body{
   box-shadow:0 12px 25px rgba(0,0,0,0.12);
 }
 
+  <!-- NOW SERVING CARD -->
+<div class="table-card" style="text-align:center;margin-bottom:30px;">
+  <h2 style="margin-top:0;">Now Serving</h2>
+
+  <div style="font-size:54px;font-weight:600;margin:15px 0;"
+       id="nowServing">--</div>
+
+  <button onclick="nextToken()" style="background:#4caf50;color:#fff;">
+    Next Token ▶
+  </button>
+
+  <button onclick="endService()" style="background:#e53935;color:#fff;margin-left:10px;">
+    End Service ❌
+  </button>
+
+  <button onclick="resetService()" style="background:#1e88e5;color:#fff;margin-left:10px;">
+    Reset 🔄
+  </button>
+</div>
+
+
 /* ===== TABLE CARD ===== */
 .table-card{
   width:95%;
