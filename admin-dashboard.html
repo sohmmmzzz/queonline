@@ -141,18 +141,21 @@ button:hover{
 
 <!-- TABLE -->
 <div class="table-card">
-  <div style="display:flex;gap:15px;margin-bottom:20px;">
-  <input id="searchInput" placeholder="Search email or token"
-         style="flex:1;padding:10px;border-radius:8px;border:none;">
 
-  <select id="statusFilter"
-          style="padding:10px;border-radius:8px;border:none;">
-    <option value="all">All</option>
-    <option value="pending">Pending</option>
-    <option value="approved">Approved</option>
-    <option value="rejected">Rejected</option>
-  </select>
-</div>
+  <!-- SEARCH & FILTER -->
+  <div style="display:flex;gap:15px;margin-bottom:20px;">
+    <input id="searchInput"
+           placeholder="Search email or token"
+           style="flex:1;padding:10px;border-radius:8px;border:none;">
+
+    <select id="statusFilter"
+            style="padding:10px;border-radius:8px;border:none;">
+      <option value="all">All</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
 
   <table>
     <thead>
@@ -176,47 +179,55 @@ button:hover{
   © 2025 Q-Serve • Admin Control Panel
 </div>
 
-<!-- 🔒 BACKEND (UNCHANGED) -->
+<!-- 🔒 FIREBASE + LOGIC -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore,collection,getDocs,updateDoc,doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-if(localStorage.getItem("isAdmin")!=="true"){
-  alert("Unauthorized");
-  window.location.href="admin.html";
+/* ADMIN AUTH CHECK */
+if (localStorage.getItem("isAdmin") !== "true") {
+  alert("Unauthorized access");
+  window.location.href = "admin.html";
 }
 
-const firebaseConfig={
-  apiKey:"AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
-  authDomain:"que-management-cbbde.firebaseapp.com",
-  projectId:"que-management-cbbde",
-  appId:"1:141715475978:web:477119aedeb17924b4d9f3"
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
+  authDomain: "que-management-cbbde.firebaseapp.com",
+  projectId: "que-management-cbbde",
+  appId: "1:141715475978:web:477119aedeb17924b4d9f3"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const table=document.getElementById("table");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
+const table = document.getElementById("table");
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
+
+/* LOAD + FILTER DATA */
 async function load() {
   table.innerHTML = "";
 
-  const search = document.getElementById("searchInput").value.toLowerCase();
-  const filter = document.getElementById("statusFilter").value;
+  const search = searchInput.value.toLowerCase();
+  const filter = statusFilter.value;
 
   const snap = await getDocs(collection(db, "appointments"));
-
   let found = false;
 
   snap.forEach(d => {
     const a = d.data();
 
-    // FILTER BY STATUS
     if (filter !== "all" && a.status !== filter) return;
 
-    // SEARCH BY EMAIL OR TOKEN
     const emailMatch = a.email?.toLowerCase().includes(search);
     const tokenMatch = String(a.token).includes(search);
-
     if (search && !(emailMatch || tokenMatch)) return;
 
     found = true;
@@ -246,21 +257,28 @@ async function load() {
   }
 }
 
-window.approve=async(id)=>{
-  await updateDoc(doc(db,"appointments",id),{status:"approved"});
+/* APPROVE / REJECT */
+window.approve = async (id) => {
+  await updateDoc(doc(db, "appointments", id), { status: "approved" });
   load();
-}
+};
 
-window.reject=async(id)=>{
-  await updateDoc(doc(db,"appointments",id),{status:"rejected"});
+window.reject = async (id) => {
+  await updateDoc(doc(db, "appointments", id), { status: "rejected" });
   load();
-}
+};
 
-window.logout=()=>{
+/* LOGOUT */
+window.logout = () => {
   localStorage.removeItem("isAdmin");
-  window.location.href="admin.html";
-}
+  window.location.href = "admin.html";
+};
 
+/* LIVE FILTERING */
+searchInput.oninput = load;
+statusFilter.onchange = load;
+
+/* INITIAL LOAD */
 load();
 </script>
 
