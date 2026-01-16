@@ -106,6 +106,7 @@ button {
   justify-content: space-between;
   font-size: 13px;
 }
+
 .links a {
   color: #00796b;
   text-decoration: none;
@@ -128,6 +129,7 @@ button {
   <button onclick="signup()">Create Account</button>
 
   <div class="links">
+    <a href="#" onclick="forgotPassword()">Forgot Password?</a>
     <a href="index.html">Back to Login</a>
     <a href="admin.html">Admin Login</a>
   </div>
@@ -135,7 +137,11 @@ button {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  sendPasswordResetEmail 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
@@ -166,6 +172,21 @@ window.signup = function () {
     .then(() => {
       alert("Account created successfully");
       window.location.href = "index.html";
+    })
+    .catch(err => alert(err.message));
+};
+
+window.forgotPassword = function () {
+  const email = document.getElementById("email").value;
+
+  if (!email) {
+    alert("Enter your email first");
+    return;
+  }
+
+  sendPasswordResetEmail(auth, email)
+    .then(() => {
+      alert("Password reset link sent to your email");
     })
     .catch(err => alert(err.message));
 };
