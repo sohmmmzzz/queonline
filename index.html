@@ -43,7 +43,6 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Theme Toggle */
 .theme-toggle {
   position: fixed;
   top: 20px;
@@ -57,7 +56,6 @@ body {
   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
-/* Login Card */
 .card {
   width: 380px;
   padding: 35px;
@@ -86,7 +84,6 @@ body {
   border: 1px solid #ddd;
   outline: none;
   background: #fff;
-  color: #333;
 }
 
 body.dark .input {
@@ -95,15 +92,6 @@ body.dark .input {
   color: #fff;
 }
 
-.input::placeholder {
-  color: #777;
-}
-
-body.dark .input::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-/* Button (unchanged behaviour) */
 button {
   width: 100%;
   padding: 14px;
@@ -113,16 +101,6 @@ button {
   font-weight: 600;
   cursor: pointer;
   color: #fff;
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-
-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 30px rgba(0,200,83,0.35);
-}
-
-button:active {
-  transform: translateY(-1px);
 }
 
 .links {
@@ -137,50 +115,6 @@ button:active {
   text-decoration: none;
 }
 
-body.dark .links a {
-  color: #80cbc4;
-}
-
-/* Loader */
-.loader {
-  display: none;
-  text-align: center;
-  margin-top: 15px;
-}
-.loader span {
-  width: 10px;
-  height: 10px;
-  background: currentColor;
-  border-radius: 50%;
-  display: inline-block;
-  animation: bounce 1.2s infinite;
-}
-.loader span:nth-child(2){animation-delay:.2s}
-.loader span:nth-child(3){animation-delay:.4s}
-@keyframes bounce {
-  0%,80%,100%{transform:scale(0)}
-  40%{transform:scale(1)}
-}
-
-/* Footer */
-.footer {
-  margin-top: 35px;
-  font-size: 13px;
-  opacity: 0.8;
-  text-align: center;
-}
-
-.footer a {
-  color: #00796b;
-  margin: 0 12px;
-  text-decoration: none;
-}
-
-body.dark .footer a {
-  color: #80cbc4;
-}
-
-/* Toast */
 .toast {
   position: fixed;
   bottom: 25px;
@@ -213,28 +147,26 @@ body.dark .footer a {
 
   <button onclick="login()">Login</button>
 
-  <div class="loader" id="loader">
-    <span></span><span></span><span></span>
-  </div>
-
   <div class="links">
     <a href="signup.html">Create Account</a>
+    <a href="#" onclick="forgotPassword()">Forgot Password?</a>
     <a href="admin.html">Admin Login</a>
   </div>
 </div>
 
-<div class="footer">
-  <a href="index.html">Student Login</a> |
-  <a href="signup.html">Signup</a> |
-  <a href="admin.html">Admin Panel</a>
-</div>
-
 <div class="toast" id="toast"></div>
 
-<!-- 🔒 BACKEND (UNCHANGED) -->
+<!-- 🔒 FIREBASE AUTH -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCwK39MvlU7jMnX85q1G96-w2ol7Tuw0_U",
@@ -247,18 +179,26 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 window.login = function () {
-  loader.style.display = "block";
-
   signInWithEmailAndPassword(auth, email.value, password.value)
     .then(() => {
       localStorage.setItem("studentEmail", email.value);
       showToast("Login Successful ✔");
-      setTimeout(()=>location.href="student.html",1200);
+      setTimeout(() => location.href = "student.html", 1200);
     })
-    .catch(err => {
-      loader.style.display = "none";
-      showToast(err.message);
-    });
+    .catch(err => showToast(err.message));
+};
+
+window.forgotPassword = function () {
+  if (!email.value) {
+    showToast("Please enter your email first");
+    return;
+  }
+
+  sendPasswordResetEmail(auth, email.value)
+    .then(() => {
+      showToast("Password reset link sent to your email ✔");
+    })
+    .catch(err => showToast(err.message));
 };
 </script>
 
@@ -270,68 +210,9 @@ function toggleTheme() {
 function showToast(msg) {
   toast.innerText = msg;
   toast.classList.add("show");
-  setTimeout(()=>toast.classList.remove("show"),3000);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
-
-  // AUTO CALL NEXT TOKEN
-app.post("/api/admin/call-next", async (req, res) => {
-  try {
-    const counterRef = db.collection("counters").doc("main");
-    const appointmentsRef = db.collection("appointments");
-
-    await db.runTransaction(async (t) => {
-      // 1️⃣ Get current in-service appointment
-      const currentSnap = await t.get(
-        appointmentsRef.where("status", "==", "in_service").limit(1)
-      );
-
-      if (!currentSnap.empty) {
-        const currentDoc = currentSnap.docs[0];
-        t.update(currentDoc.ref, { status: "completed" });
-      }
-
-      // 2️⃣ Get next approved appointment (lowest token)
-      const nextSnap = await t.get(
-        appointmentsRef
-          .where("status", "==", "approved")
-          .orderBy("token")
-          .limit(1)
-      );
-
-      if (nextSnap.empty) {
-        // No more tokens
-        t.set(counterRef, { nowServing: null, isActive: false }, { merge: true });
-        return;
-      }
-
-      const nextDoc = nextSnap.docs[0];
-      const nextData = nextDoc.data();
-
-      // 3️⃣ Mark next as in_service
-      t.update(nextDoc.ref, { status: "in_service" });
-
-      // 4️⃣ Update nowServing
-      t.set(
-        counterRef,
-        {
-          nowServing: nextData.token,
-          isActive: true,
-          email: nextData.email,
-          service: nextData.service,
-        },
-        { merge: true }
-      );
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to call next token" });
-  }
-});
-
 </script>
 
-  
 </body>
 </html>
